@@ -93,10 +93,28 @@ def main():
             
         elif mode == "1":
             print("\n=== Голосовой режим ===")
-            user_input = listen()
-            if not user_input:
-                continue
+            while True:
+                user_input = listen()
+                if not user_input:
+                    continue
                 
+                if user_input.lower() == "стоп":
+                    speak("Завершаю работу")
+                    break
+                
+                # Генерация ответа
+                inputs = tokenizer(user_input, return_tensors="pt")
+                outputs = model.generate(**inputs, max_new_tokens=50)
+                ai_response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+                print(f"AI: {ai_response}")
+                speak(ai_response)  # Озвучивание ответа модели
+                
+                # Попытка выполнить команду
+                action_result = execute_command(ai_response)
+                if action_result:
+                    print("Действие:", action_result)
+                    speak(action_result)
+                    
         elif mode == "2":
             print("\n=== Текстовый режим ===")
             user_input = input("Вы: ")
@@ -108,18 +126,6 @@ def main():
         if user_input.lower() == "стоп":
             speak("Завершаю работу")
             break
-        
-        # Генерация ответа
-        inputs = tokenizer(user_input, return_tensors="pt")
-        outputs = model.generate(**inputs, max_new_tokens=50)
-        ai_response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        print(f"AI: {ai_response}")
-        
-        # Попытка выполнить команду
-        action_result = execute_command(ai_response)
-        if action_result:
-            print("Действие:", action_result)
-            speak(action_result)
 
 if __name__ == "__main__":
     main()
